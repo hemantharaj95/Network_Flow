@@ -81,16 +81,20 @@ class Graph
             std::unordered_set<int> visited;
             std::unordered_map<int,int> parent;
             int curr_node = source;
-            parent[curr_node] = -1;
+            parent[curr_node] = -100;
             std::queue<int> open_list;
             open_list.push(curr_node);  
             visited.insert(curr_node);
             bool found = false;
-            while(not open_list.empty() && (not found)){
+            while(not open_list.empty()){
                 curr_node = open_list.front();
                 open_list.pop();
                 //For all neighbor
-                for(auto neigh: adjacency_list[curr_node]){
+                auto itr = adjacency_list.find(curr_node);
+                if(itr == adjacency_list.end()){
+                    continue;
+                }
+                for(auto neigh: itr->second){
                     if((neigh.capacity - neigh.flow) <= 0){
                         continue;
                     }        
@@ -103,14 +107,19 @@ class Graph
                         }
                     }
                 }
+
+                if(found){
+                    break;
+                }
             }
 
             std::vector<int> path;
+            path.clear();
             if(not found){
                 return path;
             }
             curr_node = dest;
-            while(parent[curr_node] != -1){
+            while(parent[curr_node] != -100){
                 path.push_back(curr_node);
                 curr_node = parent[curr_node];
             }
@@ -157,6 +166,25 @@ class Graph
                     return;
                 }
             }
+        }
+
+        std::vector<int> GetForward(int node)
+        {
+            auto itr = adjacency_list.find(node);
+
+            if(itr == adjacency_list.end()){
+                return std::vector<int>{};
+            }
+
+            std::vector<int> positive_flow;
+
+            for(auto &n: itr->second){
+                if(n.flow > 0){
+                    positive_flow.push_back(n.id);
+                }
+            }
+
+            return positive_flow;
         }
 
         void PrintEdge()
